@@ -95,7 +95,7 @@ def train_all_epochs():
                 'state_dict': model.state_dict(),
                 'optimizer': optimizer.state_dict()
             }
-            save_checkpoint(checkpoint, filename=f'{model.model_name}_epoch{epoch}.pth.tar')
+            save_checkpoint(checkpoint, filename=f'../model/{model.model_name}_epoch{epoch}.pth.tar')
 
         # Get validation score
         preds, labels = get_accuracy(valid_loader, model, config.DEVICE)
