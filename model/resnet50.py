@@ -12,7 +12,7 @@ class Resnet50(nn.Module):
     """Resnet50 model"""
 
     def __init__(self):
-        super().__init__()
+        super(Resnet50, self).__init__()
         self.model = models.resnet50(pretrained=config.PRETRAINED)
         self.model_name = 'resnet50'
 
@@ -20,7 +20,7 @@ class Resnet50(nn.Module):
             for param in self.model.parameters():
                 param.requires_grad = False
 
-        self.model._fc = nn.Sequential(
+        self.model.fc = nn.Sequential(
             nn.Linear(self.model.fc.in_features, config.model_fc['layer_1']),
             nn.ReLU(),
             nn.Dropout(p=0.5),

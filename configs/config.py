@@ -3,11 +3,11 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 # Folders' paths
-TRAIN_IMAGES_PATH = '../data/train/resized/'
-TEST_IMAGES_PATH = '../data/test/resized'
-TRAIN_CSV = '../data/train.csv'
-VALID_CSV = '../data/validation.csv'
-TEST_CSV = '../data/test.csv'
+TRAIN_IMAGES_PATH = '../gdrive/MyDrive/resized/'
+TEST_IMAGES_PATH = './data/test/resized/'
+TRAIN_CSV = './data/train.csv'
+VALID_CSV = './data/validation.csv'
+TEST_CSV = './data/test.csv'
 
 # Hyper parameters
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -19,7 +19,7 @@ NUM_WORKERS = 4
 PERCENT_TRAIN = 0.8
 PERCENT_VALID = 0.2
 PRETRAINED = True
-NUM_CLASSES = 5
+NUM_CLASSES = 1
 REQUIRES_GRAD = True
 OPTIMIZER = 'adam'
 SAVE_MODEL = True
@@ -49,7 +49,8 @@ transformations = {
             mean=[0.3200, 0.2241, 0.1608],
             std=[0.3025, 0.2186, 0.1742],
             max_pixel_value=255.0
-        )
+        ),
+        ToTensorV2()
     ]),
     'test': A.Compose([
         A.Resize(height=230, width=230),
@@ -57,7 +58,8 @@ transformations = {
             mean=[0.3200, 0.2241, 0.1608],
             std=[0.3025, 0.2186, 0.1742],
             max_pixel_value=255.0
-        )
+        ),
+        ToTensorV2()
     ])
 }
 

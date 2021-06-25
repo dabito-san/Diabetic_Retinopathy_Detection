@@ -16,25 +16,31 @@ def train_one_epoch(loader, model, optimizer, loss_fn, scaler, device):
     """Trains the model for one epoch"""
 
     losses = []
-    loop = tqdm(loader)
-    for batch_idx, (x, y, _) in enumerate(loop):
-        x = x.to(device=device)
-        y = y.to(device=device)
+    #loop = tqdm(loader)
+    #for batch_idx, (x, y, _) in enumerate(loop):
+    for batch_idx, (x, y, _) in enumerate(loader):
+      x = x.to(device=device)
+      y = y.to(device=device)
 
-        # forward pass
-        with torch.cuda.amp.autocast():
-            scores = model(x)
-            loss = loss_fn(scores, y.unsqueeze(1).float())
+      # forward pass
+      with torch.cuda.amp.autocast():
+          scores = model(x)
+          loss = loss_fn(scores, y.unsqueeze(1).float())
 
-        losses.append(loss.item())
+      losses.append(loss.item())
 
-        # backward pass
-        optimizer.zero_grad()
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
+      # backward pass
+      optimizer.zero_grad()
+      #scaler.scale(loss).backward()
+      #scaler.step(optimizer)
+      loss.backward()
+      optimizer.step()
 
-        # Update progress bar
-        loop.set_postfix(loss=loss.item())
+      # Update progress bar
+      #loop.set_postfix(loss=loss.item())
+
+      if(batch_idx % 100 == 0):
+        print(f'\tBatch {batch_idx}/{len(loader)}:\tLoss: {loss.item():.3f}')
 
     epoch_loss = sum(losses) / len(losses)
 
@@ -78,28 +84,31 @@ def train_all_epochs():
     model = Resnet50()
     print('model created')
     model = model.to(device=config.DEVICE)
-    print('model sent to device')
+    print(f'model sent to device: {config.DEVICE}')
     optimizer = optim.Adam(model.parameters(),
                            lr=config.LEARNING_RATE,
                            weight_decay=config.WEIGHT_DECAY)
     print('optimizer created')
     scaler = torch.cuda.amp.GradScaler()
-    print('scaler created')
+    #print('scaler created')
 
     # Train for all epochs
     for epoch in range(config.NUM_EPOCHS):
-        train_one_epoch(train_loader, model, optimizer, loss_fn, scaler, config.DEVICE)
+      print('_'*40)
+      print(f'Epoch {epoch}/{config.NUM_EPOCHS}')
+      print('_'*40)
+      train_one_epoch(train_loader, model, optimizer, loss_fn, scaler, config.DEVICE)
 
-        if config.SAVE_MODEL:
-            checkpoint = {
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict()
-            }
-            save_checkpoint(checkpoint, filename=f'../model/{model.model_name}_epoch{epoch}.pth.tar')
+      if config.SAVE_MODEL:
+        checkpoint = {
+            'state_dict': model.state_dict(),
+            'optimizer': optimizer.state_dict()
+        }
+        save_checkpoint(checkpoint, filename=f'./model/{model.model_name}_epoch{epoch}.pth.tar')
 
-        # Get validation score
-        preds, labels = get_accuracy(valid_loader, model, config.DEVICE)
-        print(f'QuadraticWeightedKappa (Validation): {cohen_kappa_score(labels, preds, weights="quadratic")}')
+      # Get validation score
+      preds, labels = get_accuracy(valid_loader, model, config.DEVICE)
+      print(f'QuadraticWeightedKappa (Validation): {cohen_kappa_score(labels, preds, weights="quadratic")}')
 
 
 if __name__ == '__main__':

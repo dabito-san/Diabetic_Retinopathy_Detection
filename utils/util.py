@@ -1,3 +1,4 @@
+import numpy as np
 from numpy.random import RandomState
 import torch
 import torchvision.datasets as datasets
@@ -49,9 +50,9 @@ def get_accuracy(loader, model, device='cuda'):
 
         predictions = model.forward(x)
         predictions[predictions < 0.5] = 0
-        predictions[(predictions >= 0.5) % (predictions < 1.5)] = 1
-        predictions[(predictions >= 1.5) % (predictions < 2.5)] = 2
-        predictions[(predictions >= 2.5) % (predictions < 3.5)] = 3
+        predictions[(predictions >= 0.5) & (predictions < 1.5)] = 1
+        predictions[(predictions >= 1.5) & (predictions < 2.5)] = 2
+        predictions[(predictions >= 2.5) & (predictions < 3.5)] = 3
         predictions[(predictions >= 3.5)] = 4
         predictions = predictions.long().view(-1)
         y = y.view(-1)
@@ -63,17 +64,18 @@ def get_accuracy(loader, model, device='cuda'):
         all_labels.append(y.detach().cpu().numpy())
 
     print(f'[{num_correct}/{num_samples}] sample predictions are correct')
-    print(f'Accuracy: {float(num_correct) / float(num_samples) * 100:.2f}')
+    print(f'Accuracy: {float(num_correct) / float(num_samples) * 100:.2f}%')
 
     model.train()
 
-    return all_preds, all_labels
+    return np.concatenate(all_preds, axis=0), np.concatenate(
+        all_labels, axis=0)
 
 
 def save_checkpoint(state, filename='my_checkpoint.pth.tar'):
-    print('=> Saving checkpoint...')
+    print('Saving checkpoint...')
     torch.save(state, filename)
-    print('Checkpoint saved.')
+    print('=> Checkpoint saved.')
 
 
 if __name__ == '__main__':
