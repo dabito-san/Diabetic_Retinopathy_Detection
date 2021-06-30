@@ -24,13 +24,13 @@ if os.path.isfile(config.CHECKPOINT_FILE):
 
     load_checkpoint(torch.load(config.CHECKPOINT_FILE), model, optimizer, config.LEARNING_RATE)
 else:
-    print('No checkpoint found.')
+    print('No checkpoint found')
     import sys
     sys.exit()
 
 # Create Dataset
-test_dataset = DRDataset(config.TRAIN_IMAGES_PATH,
-                         config.TRAIN_CSV,
+test_dataset = DRDataset(config.TEST_IMAGES_PATH,
+                         config.TEST_CSV,
                          mode='test',
                          transform=config.transformations['test'])
 print('test_dataset created')

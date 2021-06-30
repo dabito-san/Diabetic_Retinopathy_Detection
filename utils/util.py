@@ -1,13 +1,10 @@
-import numpy as np
+# internal imports
+from configs import config
+
+# external imports
 from numpy.random import RandomState
 import torch
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, WeightedRandomSampler
-from configs import config
-import pandas as pd
-from sklearn.metrics import cohen_kappa_score
-import os
 
 
 def get_images_mean_std(dataloader):
@@ -84,7 +81,7 @@ def get_accuracy(loader, model, device='cuda'):
 def save_checkpoint(state, filename='my_checkpoint.pth.tar'):
     print('Saving checkpoint...')
     torch.save(state, filename)
-    print('=> Checkpoint saved.')
+    print('=> Checkpoint saved')
 
 
 def load_checkpoint(checkpoint, model, optimizer, lr):
@@ -95,6 +92,8 @@ def load_checkpoint(checkpoint, model, optimizer, lr):
     # Reset learning rate
     for param_group in optimizer.param_groups:
         param_group["lr"] = lr
+    
+    print("Checkpoint loaded.")
 
 
 def create_sampler(labels_list):
@@ -122,7 +121,7 @@ def make_prediction(model, loader, output_csv="submission.csv"):
     filenames = []
     model.eval()
 
-    for x, y, files in loader:
+    for x, y, files in tqdm(loader, leave=False):
         x = x.to(config.DEVICE)
         with torch.no_grad():
             predictions = model(x)

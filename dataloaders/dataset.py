@@ -22,12 +22,10 @@ class DRDataset(Dataset):
     def __getitem__(self, index):
         if self.mode == 'test':
             image_file, label = self.data.iloc[[index]].to_string(header=False, index=False), -1
-            print(image_file)
-            print(label)
+            image_file = image_file.replace(".jpeg", "")
+            image_file = image_file.replace(" ", "")
         else:
             image_file, label = self.data.iloc[index]
-            print(image_file)
-            print(label)
 
         image = np.array(Image.open(os.path.join(self.images_folder, image_file+'.jpeg')))
 
