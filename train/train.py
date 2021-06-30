@@ -2,7 +2,7 @@
 from configs import config
 from dataloaders.dataset import DRDataset
 from model.resnet50 import Resnet50
-from utils.util import get_accuracy, save_checkpoint
+from utils.util import get_accuracy, save_checkpoint, load_checkpoint, create_sampler
 
 # external imports
 from tqdm import tqdm
@@ -10,6 +10,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch import nn, optim
 from sklearn.metrics import cohen_kappa_score
+import os
 
 
 def train_one_epoch(loader, model, optimizer, loss_fn, scaler, device):
@@ -63,10 +64,13 @@ def train_all_epochs():
     print('valid_dataset created')
     # TODO test_dataset
 
+    # Create sampler with classes weights to deal with unbalance train dataset
+    sampler = create_sampler(train_dataset.data.level)
+
     # Create DataLoaders
     train_loader = DataLoader(
         train_dataset, batch_size=config.BATCH_SIZE, num_workers=config.NUM_WORKERS,
-        shuffle=True
+        shuffle=True, sampler=sampler
     )
     print('train_loader created')
     valid_loader = DataLoader(
@@ -74,9 +78,8 @@ def train_all_epochs():
         shuffle=False
     )
     print('valid_loader created')
-    # TODO test_loader
 
-    # # Create Loss function
+    # Create Loss function
     loss_fn = nn.MSELoss()
     print('loss_fn created')
 
@@ -91,6 +94,11 @@ def train_all_epochs():
     print('optimizer created')
     scaler = torch.cuda.amp.GradScaler()
     #print('scaler created')
+
+    # Load checkpoint
+    if config.LOAD_MODEL and os.path.isfile(config.CHECKPOINT_FILE):
+        load_checkpoint(torch.load(config.CHECKPOINT_FILE), model, optimizer, config.LEARNING_RATE)
+
 
     # Train for all epochs
     for epoch in range(config.NUM_EPOCHS):

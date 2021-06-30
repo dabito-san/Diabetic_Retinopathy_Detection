@@ -23,6 +23,8 @@ NUM_CLASSES = 1
 REQUIRES_GRAD = True
 OPTIMIZER = 'adam'
 SAVE_MODEL = True
+LOAD_MODEL = False
+CHECKPOINT_FILE = './model/resnet50_epoch2.pth.tar'
 
 # Data augmentation for images
 transformations = {

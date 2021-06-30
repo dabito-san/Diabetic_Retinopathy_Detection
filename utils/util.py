@@ -3,7 +3,7 @@ from numpy.random import RandomState
 import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from configs import config
 import pandas as pd
 from sklearn.metrics import cohen_kappa_score
@@ -76,6 +76,62 @@ def save_checkpoint(state, filename='my_checkpoint.pth.tar'):
     print('Saving checkpoint...')
     torch.save(state, filename)
     print('=> Checkpoint saved.')
+
+
+def load_checkpoint(checkpoint, model, optimizer, lr):
+    print("=> Loading checkpoint")
+    model.load_state_dict(checkpoint["state_dict"])
+    #optimizer.load_state_dict(checkpoint["optimizer"])
+
+    # Reset learning rate
+    for param_group in optimizer.param_groups:
+        param_group["lr"] = lr
+
+
+def create_sampler(labels_list):
+    labels_count = {
+        '0': 0,
+        '1': 0,
+        '2': 0,
+        '3': 0,
+        '4': 0
+    }
+    for label in labels_list:
+        labels_count[str(label)] += 1
+
+    classes_weights = [v / len(labels_list) for v in labels_count.values()]
+    samples_weights = torch.from_numpy(np.array([classes_weights[l] for l in labels_list]))
+
+    # Instanciate sampler object
+    sampler = WeightedRandomSampler(samples_weights, len(samples_weights))
+
+    return sampler
+
+
+def make_prediction(model, loader, output_csv="submission.csv"):
+    preds = []
+    filenames = []
+    model.eval()
+
+    for x, y, files in loader:
+        x = x.to(config.DEVICE)
+        with torch.no_grad():
+            predictions = model(x)
+
+            predictions[predictions < 0.5] = 0
+            predictions[(predictions >= 0.5) & (predictions < 1.5)] = 1
+            predictions[(predictions >= 1.5) & (predictions < 2.5)] = 2
+            predictions[(predictions >= 2.5) & (predictions < 3.5)] = 3
+            predictions[(predictions >= 3.5)] = 4
+
+            predictions = predictions.long().view(-1)
+            preds.append(predictions.cpu().numpy())
+            filenames += files
+
+    df = pd.DataFrame({"image": filenames, "level": np.concatenate(preds, axis=0)})
+    df.to_csv(output_csv, index=False)
+    model.train()
+    print("Done with predictions")
 
 
 if __name__ == '__main__':

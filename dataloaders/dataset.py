@@ -20,7 +20,10 @@ class DRDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-        image_file, label = self.data.iloc[index]
+        if self.mode == 'test':
+            image_file, label = self.data.iloc[index], -1
+        else:
+            image_file, label = self.data.iloc[index]
 
         image = np.array(Image.open(os.path.join(self.images_folder, image_file+'.jpeg')))
 
