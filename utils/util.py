@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from configs import config
 import pandas as pd
 from sklearn.metrics import cohen_kappa_score
+import os
 
 
 def get_images_mean_std(dataloader):
@@ -36,6 +37,14 @@ def train_valid_split(csv_path, save_path):
     print(f'Total number of images: {data.shape[0]}')
     print(f'Number of training images: {train.shape[0]}')
     print(f'Number of validation images: {valid.shape[0]}')
+
+
+def test_set(test_images_path, csv_save_path):
+    images = []
+    for image in os.listdir(test_images_path):
+        images.append(str(image))
+    images = pd.DataFrame(images, columns=['image'])
+    images.to_csv(csv_save_path + 'test.csv', index=False)
 
 
 def get_accuracy(loader, model, device='cuda'):
