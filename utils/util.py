@@ -5,6 +5,7 @@ from configs import config
 from numpy.random import RandomState
 import torch
 from torch.utils.data import DataLoader, WeightedRandomSampler
+import numpy as np
 
 
 def get_images_mean_std(dataloader):
